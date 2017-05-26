@@ -41,6 +41,7 @@ public class StatsDEmitter implements Emitter
   private final static Logger log = new Logger(StatsDEmitter.class);
   private final static String DRUID_METRIC_SEPARATOR = "\\/";
   private final static String STATSD_SEPARATOR = ":|\\|";
+  private final static String UNWANTED_CHARS = "\\.|:";
 
   private final StatsDClient statsd;
   private final StatsDEmitterConfig config;
@@ -72,6 +73,38 @@ public class StatsDEmitter implements Emitter
   @Override
   public void start() {}
 
+  public static final class NameBuilder {
+
+    private final ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+    private final String SEPARATOR;
+    private final String REPLACEMENT_CHAR;
+
+    public NameBuilder(String separator, String replacementChar) {
+      SEPARATOR = separator;
+      REPLACEMENT_CHAR = replacementChar;
+    };
+
+    private String escape(String part) {
+      return part.replaceAll(UNWANTED_CHARS, REPLACEMENT_CHAR);
+    }
+
+    public final NameBuilder add(String part) {
+      builder.add(escape(part));
+      return this;
+    }
+
+    public final String build() {
+      return Joiner.on(SEPARATOR)
+              .join(builder.build())
+              .replaceAll(DRUID_METRIC_SEPARATOR, SEPARATOR)
+              .replaceAll(STATSD_SEPARATOR, SEPARATOR);
+    }
+
+    public ImmutableList<String> getParts() {
+      return builder.build();
+    }
+  }
+
   @Override
   public void emit(Event event)
   {
@@ -83,7 +116,7 @@ public class StatsDEmitter implements Emitter
       Map<String, Object> userDims = metricEvent.getUserDims();
       Number value = metricEvent.getValue();
 
-      ImmutableList.Builder<String> nameBuilder = new ImmutableList.Builder<>();
+      NameBuilder nameBuilder = new NameBuilder(config.getSeparator(), config.getReplacementChar());
       if (config.getIncludeHost()) {
         nameBuilder.add(host);
       }
@@ -94,10 +127,7 @@ public class StatsDEmitter implements Emitter
 
       if (metricType != null) {
 
-        String fullName = Joiner.on(config.getSeparator())
-                                .join(nameBuilder.build())
-                                .replaceAll(DRUID_METRIC_SEPARATOR, config.getSeparator())
-                                .replaceAll(STATSD_SEPARATOR, config.getSeparator());
+        String fullName = nameBuilder.build();
 
         switch (metricType) {
           case count:

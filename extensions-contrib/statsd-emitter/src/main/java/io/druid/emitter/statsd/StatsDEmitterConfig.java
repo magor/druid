@@ -37,6 +37,8 @@ public class StatsDEmitterConfig
   @JsonProperty
   final private String separator;
   @JsonProperty
+  final private String replacementChar;
+  @JsonProperty
   final private Boolean includeHost;
   @JsonProperty
   final private String dimensionMapPath;
@@ -47,6 +49,7 @@ public class StatsDEmitterConfig
       @JsonProperty("port") Integer port,
       @JsonProperty("prefix") String prefix,
       @JsonProperty("separator") String separator,
+      @JsonProperty("replacementChar") String replacementChar,
       @JsonProperty("includeHost") Boolean includeHost,
       @JsonProperty("dimensionMapPath") String dimensionMapPath)
   {
@@ -54,6 +57,7 @@ public class StatsDEmitterConfig
     this.port = Preconditions.checkNotNull(port, "StatsD port cannot be null.");
     this.prefix = prefix != null ? prefix : "";
     this.separator = separator != null ? separator : ".";
+    this.replacementChar = replacementChar != null ? replacementChar : "-";
     this.includeHost = includeHost != null ? includeHost : false;
     this.dimensionMapPath = dimensionMapPath;
   }
@@ -82,6 +86,9 @@ public class StatsDEmitterConfig
     if (separator != null ? !separator.equals(that.separator) : that.separator != null) {
       return false;
     }
+    if (replacementChar != null ? !replacementChar.equals(that.replacementChar) : that.replacementChar != null) {
+      return false;
+    }
     if (includeHost != null ? !includeHost.equals(that.includeHost) : that.includeHost != null) {
       return false;
     }
@@ -96,6 +103,7 @@ public class StatsDEmitterConfig
     result = 31 * result + (port != null ? port.hashCode() : 0);
     result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
     result = 31 * result + (separator != null ? separator.hashCode() : 0);
+    result = 31 * result + (replacementChar != null ? replacementChar.hashCode() : 0);
     result = 31 * result + (includeHost != null ? includeHost.hashCode() : 0);
     result = 31 * result + (dimensionMapPath != null ? dimensionMapPath.hashCode() : 0);
     return result;
@@ -123,6 +131,12 @@ public class StatsDEmitterConfig
   public String getSeparator()
   {
     return separator;
+  }
+
+  @JsonProperty
+  public String getReplacementChar()
+  {
+    return replacementChar;
   }
 
   @JsonProperty

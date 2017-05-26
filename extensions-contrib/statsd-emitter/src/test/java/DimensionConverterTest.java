@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.metamx.emitter.service.ServiceMetricEvent;
 import io.druid.emitter.statsd.DimensionConverter;
+import io.druid.emitter.statsd.StatsDEmitter;
 import io.druid.emitter.statsd.StatsDMetric;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public class DimensionConverterTest
                                                                .build(new DateTime(), "query/time", 10)
                                                                .build("broker", "brokerHost1");
 
-    ImmutableList.Builder<String> actual = new ImmutableList.Builder<>();
+    StatsDEmitter.NameBuilder actual = new StatsDEmitter.NameBuilder(".", "-");
     StatsDMetric.Type type = dimensionConverter.addFilteredUserDims(
         event.getService(),
         event.getMetric(),
@@ -59,6 +60,6 @@ public class DimensionConverterTest
     ImmutableList.Builder<String> expected = new ImmutableList.Builder<>();
     expected.add("data-source");
     expected.add("groupBy");
-    assertEquals("correct Dimensions", expected.build(), actual.build());
+    assertEquals("correct Dimensions", expected.build(), actual.getParts());
   }
 }
